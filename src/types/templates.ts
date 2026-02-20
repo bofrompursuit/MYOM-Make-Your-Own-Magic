@@ -120,10 +120,17 @@ export interface InstagramSticker {
 export interface InstagramData {
   headline: string;
   subtext: string;
+  headlineX: number; // 0–1
+  headlineY: number;
+  subtextX: number;
+  subtextY: number;
   backgroundColor: string;
   textColor: string;
   size: InstagramSizeKey;
-  backgroundImage?: string; // data URL
+  backgroundImage?: string;
+  backgroundImageScale: number; // 0.5–2
+  backgroundImageX: number; // 0–1
+  backgroundImageY: number;
   stickers: InstagramSticker[];
 }
 
@@ -163,8 +170,15 @@ export const DEFAULT_EVENT_INVITE: EventInviteData = {
 export const DEFAULT_INSTAGRAM: InstagramData = {
   headline: 'Your Headline',
   subtext: 'Supporting text or CTA',
+  headlineX: 0.5,
+  headlineY: 0.4,
+  subtextX: 0.5,
+  subtextY: 0.6,
   backgroundColor: '#0f0f23',
   textColor: '#ffffff',
   size: 'square',
+  backgroundImageScale: 1,
+  backgroundImageX: 0.5,
+  backgroundImageY: 0.5,
   stickers: [],
 };

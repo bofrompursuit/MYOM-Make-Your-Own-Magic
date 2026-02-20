@@ -4,7 +4,6 @@ import {
   TEMPLATE_SPECS,
   type TemplateKind,
   type TemplateData,
-  type InstagramSticker,
   DEFAULT_BOOK_COVER,
   DEFAULT_BOOK_PAGE,
   DEFAULT_EVENT_INVITE,
@@ -118,11 +117,18 @@ export default function App() {
             data={templateData}
             scale={1}
             templateRef={templateRef}
-            onInstagramStickersChange={(stickers: InstagramSticker[]) => {
+            onInstagramStickersChange={(stickers) => {
               if (templateData.kind !== 'instagram') return;
               setTemplateData({
                 kind: 'instagram',
                 data: { ...templateData.data, stickers },
+              });
+            }}
+            onInstagramChange={(partial) => {
+              if (templateData.kind !== 'instagram') return;
+              setTemplateData({
+                kind: 'instagram',
+                data: { ...templateData.data, ...partial },
               });
             }}
           />

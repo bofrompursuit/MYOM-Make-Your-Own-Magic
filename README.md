@@ -1,6 +1,14 @@
-# React + TypeScript + Vite
+# MYOM — Make Your Own Magic
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Template maker for book covers, book pages, event invites, and Instagram posts (with upload/take photo, stickers, and standard dimensions). Built with React + TypeScript + Vite.
+
+## Recommended database (optional)
+
+For saving templates and media in the cloud, **Supabase** is recommended: free tier (Postgres + Storage), simple JS client, and Row Level Security. Add `@supabase/supabase-js`, set `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, and use Storage for images and a `templates` table for JSON state.
+
+## React + TypeScript + Vite
+
+This project uses Vite with HMR and ESLint.
 
 Currently, two official plugins are available:
 

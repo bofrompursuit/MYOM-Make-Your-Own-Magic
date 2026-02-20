@@ -5,37 +5,53 @@ interface Props {
   data: InstagramData;
   scale: number;
   onStickersChange?: (stickers: InstagramSticker[]) => void;
+  onInstagramChange?: (partial: Partial<InstagramData>) => void;
 }
 
-export function InstagramTemplate({ data, scale, onStickersChange }: Props) {
+export function InstagramTemplate({ data, scale, onStickersChange, onInstagramChange }: Props) {
   const size = INSTAGRAM_SIZES[data.size];
+  const headlineX = data.headlineX ?? 0.5;
+  const headlineY = data.headlineY ?? 0.4;
+  const subtextX = data.subtextX ?? 0.5;
+  const subtextY = data.subtextY ?? 0.6;
+  const bgScale = data.backgroundImageScale ?? 1;
+  const bgX = data.backgroundImageX ?? 0.5;
+  const bgY = data.backgroundImageY ?? 0.5;
 
-  const handleStickerDrag =
-    (id: string) => (event: React.PointerEvent<HTMLDivElement>) => {
-      if (!onStickersChange) return;
-      const target = event.currentTarget.parentElement as HTMLDivElement | null;
-      if (!target) return;
+  const clamp = (v: number) => Math.min(1, Math.max(0, v));
 
-      const bounds = target.getBoundingClientRect();
-      const x = (event.clientX - bounds.left) / bounds.width;
-      const y = (event.clientY - bounds.top) / bounds.height;
+  const makeDragHandler = (field: 'headline' | 'subtext') => (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!onInstagramChange) return;
+    const target = e.currentTarget.closest('[data-instagram-canvas]') as HTMLDivElement | null;
+    if (!target) return;
+    const bounds = target.getBoundingClientRect();
+    const x = clamp((e.clientX - bounds.left) / bounds.width);
+    const y = clamp((e.clientY - bounds.top) / bounds.height);
+    if (field === 'headline') {
+      onInstagramChange({ headlineX: x, headlineY: y });
+    } else {
+      onInstagramChange({ subtextX: x, subtextY: y });
+    }
+  };
 
-      onStickersChange(
-        data.stickers.map((s) =>
-          s.id === id
-            ? {
-                ...s,
-                x: Math.min(1, Math.max(0, x)),
-                y: Math.min(1, Math.max(0, y)),
-              }
-            : s,
-        ),
-      );
-    };
+  const handleStickerDrag = (id: string) => (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!onStickersChange) return;
+    const target = e.currentTarget.closest('[data-instagram-canvas]') as HTMLDivElement | null;
+    if (!target) return;
+    const bounds = target.getBoundingClientRect();
+    const x = clamp((e.clientX - bounds.left) / bounds.width);
+    const y = clamp((e.clientY - bounds.top) / bounds.height);
+    onStickersChange(
+      data.stickers.map((s) =>
+        s.id === id ? { ...s, x, y } : s
+      ),
+    );
+  };
 
   return (
     <div
-      className="rounded-xl shadow-2xl overflow-hidden flex flex-col justify-center items-center text-center relative"
+      data-instagram-canvas
+      className="rounded-xl shadow-2xl overflow-hidden relative"
       style={{
         width: size.width * scale,
         height: size.height * scale,
@@ -45,23 +61,41 @@ export function InstagramTemplate({ data, scale, onStickersChange }: Props) {
       }}
     >
       {data.backgroundImage && (
-        <img
-          src={data.backgroundImage}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+        <div
+          className="absolute inset-0 overflow-hidden"
+          style={{
+            transform: `scale(${bgScale})`,
+            transformOrigin: '50% 50%',
+          }}
+        >
+          <img
+            src={data.backgroundImage}
+            alt=""
+            className="absolute w-full h-full object-cover"
+            style={{
+              objectPosition: `${bgX * 100}% ${bgY * 100}%`,
+            }}
+          />
+        </div>
       )}
 
+      {/* Draggable headline */}
       <div
-        className="relative flex flex-col items-center justify-center text-center px-12"
+        className="absolute cursor-grab active:cursor-grabbing select-none touch-none z-10"
         style={{
-          padding: 80 * scale,
-          position: 'relative',
-          zIndex: 1,
+          left: `${headlineX * 100}%`,
+          top: `${headlineY * 100}%`,
+          transform: 'translate(-50%, -50%)',
+          maxWidth: '90%',
+        }}
+        onPointerDown={(e) => (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)}
+        onPointerMove={(e) => {
+          if (e.buttons !== 1) return;
+          makeDragHandler('headline')(e);
         }}
       >
         <h1
-          className="font-bold max-w-full"
+          className="font-bold text-center whitespace-nowrap"
           style={{
             fontSize: Math.max(24, 56 * scale),
             lineHeight: 1.15,
@@ -69,40 +103,51 @@ export function InstagramTemplate({ data, scale, onStickersChange }: Props) {
         >
           {data.headline}
         </h1>
-        {data.subtext && (
+      </div>
+
+      {/* Draggable subtext */}
+      {data.subtext && (
+        <div
+          className="absolute cursor-grab active:cursor-grabbing select-none touch-none z-10"
+          style={{
+            left: `${subtextX * 100}%`,
+            top: `${subtextY * 100}%`,
+            transform: 'translate(-50%, -50%)',
+            maxWidth: '85%',
+          }}
+          onPointerDown={(e) => (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)}
+        onPointerMove={(e) => {
+          if (e.buttons !== 1) return;
+          makeDragHandler('subtext')(e);
+        }}
+        >
           <p
-            className="mt-6 opacity-90"
-            style={{
-              fontSize: Math.max(14, 28 * scale),
-              marginTop: 32 * scale,
-            }}
+            className="opacity-90 text-center whitespace-nowrap"
+            style={{ fontSize: Math.max(14, 28 * scale) }}
           >
             {data.subtext}
           </p>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Stickers */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none z-20">
         {data.stickers.map((sticker) => (
           <div
             key={sticker.id}
-            className="absolute pointer-events-auto cursor-grab active:cursor-grabbing select-none"
+            className="absolute pointer-events-auto cursor-grab active:cursor-grabbing select-none touch-none"
             style={{
               left: `${sticker.x * 100}%`,
               top: `${sticker.y * 100}%`,
               transform: `translate(-50%, -50%) scale(${sticker.scale}) rotate(${sticker.rotation}deg)`,
             }}
-            onPointerDown={(e) => {
-              e.preventDefault();
-              (e.target as HTMLElement).setPointerCapture(e.pointerId);
-            }}
+            onPointerDown={(e) => (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)}
             onPointerMove={(e) => {
-              if (!(e.buttons & 1)) return;
+              if (e.buttons !== 1) return;
               handleStickerDrag(sticker.id)(e);
             }}
           >
-            <div className="px-3 py-1 rounded-full bg-black/60 text-white text-xs font-semibold backdrop-blur">
+            <div className="px-3 py-1 rounded-full bg-black/60 text-white text-xs font-semibold backdrop-blur whitespace-nowrap">
               {sticker.text}
             </div>
           </div>

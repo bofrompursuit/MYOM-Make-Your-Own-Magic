@@ -1,15 +1,16 @@
-import type { TemplateData, InstagramSticker } from '../types/templates';
+import type { TemplateData, InstagramSticker, InstagramData } from '../types/templates';
+import { TEMPLATE_SPECS, INSTAGRAM_SIZES } from '../types/templates';
 import { BookCoverTemplate } from './templates/BookCoverTemplate';
 import { BookPageTemplate } from './templates/BookPageTemplate';
 import { EventInviteTemplate } from './templates/EventInviteTemplate';
 import { InstagramTemplate } from './templates/InstagramTemplate';
-import { TEMPLATE_SPECS } from '../types/templates';
 
 interface Props {
   data: TemplateData;
   scale: number;
   templateRef?: React.RefObject<HTMLDivElement | null>;
   onInstagramStickersChange?: (stickers: InstagramSticker[]) => void;
+  onInstagramChange?: (partial: Partial<InstagramData>) => void;
 }
 
 export function TemplateCanvas({
@@ -17,23 +18,16 @@ export function TemplateCanvas({
   scale,
   templateRef,
   onInstagramStickersChange,
+  onInstagramChange,
 }: Props) {
   const spec = TEMPLATE_SPECS[data.kind];
-  const baseWidth =
-    data.kind === 'instagram'
-      ? TEMPLATE_SPECS.instagram.width
-      : spec.width;
-  const baseHeight =
-    data.kind === 'instagram'
-      ? TEMPLATE_SPECS.instagram.height
-      : spec.height;
+  const isInstagram = data.kind === 'instagram';
+  const instagramSize = isInstagram ? INSTAGRAM_SIZES[(data.data as InstagramData).size] : null;
+  const baseWidth = instagramSize?.width ?? spec.width;
+  const baseHeight = instagramSize?.height ?? spec.height;
   const maxW = 400;
   const maxH = 560;
-  const scaleToFit = Math.min(
-    maxW / baseWidth,
-    maxH / baseHeight,
-    1.2
-  );
+  const scaleToFit = Math.min(maxW / baseWidth, maxH / baseHeight, 1.2);
   const displayScale = scale * scaleToFit;
 
   return (
@@ -56,6 +50,7 @@ export function TemplateCanvas({
             data={data.data}
             scale={displayScale}
             onStickersChange={onInstagramStickersChange}
+            onInstagramChange={onInstagramChange}
           />
         )}
       </div>

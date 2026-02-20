@@ -220,7 +220,12 @@ export function PropertyPanel({ data, onChange }: Props) {
       reader.onload = () => {
         const result = typeof reader.result === 'string' ? reader.result : '';
         if (result) {
-          update({ backgroundImage: result });
+          update({
+            backgroundImage: result,
+            backgroundImageScale: d.backgroundImageScale ?? 1,
+            backgroundImageX: d.backgroundImageX ?? 0.5,
+            backgroundImageY: d.backgroundImageY ?? 0.5,
+          });
         }
       };
       reader.readAsDataURL(file);
@@ -251,7 +256,12 @@ export function PropertyPanel({ data, onChange }: Props) {
       if (!ctx) return;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/png');
-      update({ backgroundImage: dataUrl });
+      update({
+        backgroundImage: dataUrl,
+        backgroundImageScale: d.backgroundImageScale ?? 1,
+        backgroundImageX: d.backgroundImageX ?? 0.5,
+        backgroundImageY: d.backgroundImageY ?? 0.5,
+      });
 
       const stream = video.srcObject as MediaStream | null;
       stream?.getTracks().forEach((t) => t.stop());
@@ -281,6 +291,9 @@ export function PropertyPanel({ data, onChange }: Props) {
 
     return (
       <div className="space-y-4">
+        <p className="text-[10px] text-zinc-500 mb-2">
+          Drag headline and subtext on the canvas to reposition.
+        </p>
         <div>
           <Label htmlFor="headline">Headline</Label>
           <Input id="headline" value={d.headline} onChange={(v) => update({ headline: v })} placeholder="Your Headline" />
@@ -353,6 +366,60 @@ export function PropertyPanel({ data, onChange }: Props) {
                 playsInline
                 muted
               />
+            )}
+            {d.backgroundImage && (
+              <div className="mt-3 space-y-3 pt-3 border-t border-zinc-700/50">
+                <div>
+                  <Label>Photo size</Label>
+                  <input
+                    type="range"
+                    min={0.5}
+                    max={2}
+                    step={0.1}
+                    value={d.backgroundImageScale ?? 1}
+                    onChange={(e) =>
+                      update({ backgroundImageScale: parseFloat(e.target.value) })
+                    }
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-700 accent-indigo-500"
+                  />
+                  <p className="text-[10px] text-zinc-500 mt-0.5">
+                    {(d.backgroundImageScale ?? 1).toFixed(1)}× zoom
+                  </p>
+                </div>
+                <div>
+                  <Label>Photo position (focus point)</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <span className="text-[10px] text-zinc-500">X</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={d.backgroundImageX ?? 0.5}
+                        onChange={(e) =>
+                          update({ backgroundImageX: parseFloat(e.target.value) })
+                        }
+                        className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-700 accent-indigo-500"
+                      />
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-zinc-500">Y</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={1}
+                        step={0.05}
+                        value={d.backgroundImageY ?? 0.5}
+                        onChange={(e) =>
+                          update({ backgroundImageY: parseFloat(e.target.value) })
+                        }
+                        className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-zinc-700 accent-indigo-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         </div>
