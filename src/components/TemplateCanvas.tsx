@@ -1,4 +1,4 @@
-import type { TemplateData } from '../types/templates';
+import type { TemplateData, InstagramSticker } from '../types/templates';
 import { BookCoverTemplate } from './templates/BookCoverTemplate';
 import { BookPageTemplate } from './templates/BookPageTemplate';
 import { EventInviteTemplate } from './templates/EventInviteTemplate';
@@ -9,15 +9,29 @@ interface Props {
   data: TemplateData;
   scale: number;
   templateRef?: React.RefObject<HTMLDivElement | null>;
+  onInstagramStickersChange?: (stickers: InstagramSticker[]) => void;
 }
 
-export function TemplateCanvas({ data, scale, templateRef }: Props) {
+export function TemplateCanvas({
+  data,
+  scale,
+  templateRef,
+  onInstagramStickersChange,
+}: Props) {
   const spec = TEMPLATE_SPECS[data.kind];
+  const baseWidth =
+    data.kind === 'instagram'
+      ? TEMPLATE_SPECS.instagram.width
+      : spec.width;
+  const baseHeight =
+    data.kind === 'instagram'
+      ? TEMPLATE_SPECS.instagram.height
+      : spec.height;
   const maxW = 400;
   const maxH = 560;
   const scaleToFit = Math.min(
-    maxW / spec.width,
-    maxH / spec.height,
+    maxW / baseWidth,
+    maxH / baseHeight,
     1.2
   );
   const displayScale = scale * scaleToFit;
@@ -38,7 +52,11 @@ export function TemplateCanvas({ data, scale, templateRef }: Props) {
           <EventInviteTemplate data={data.data} scale={displayScale} />
         )}
         {data.kind === 'instagram' && (
-          <InstagramTemplate data={data.data} scale={displayScale} />
+          <InstagramTemplate
+            data={data.data}
+            scale={displayScale}
+            onStickersChange={onInstagramStickersChange}
+          />
         )}
       </div>
     </div>

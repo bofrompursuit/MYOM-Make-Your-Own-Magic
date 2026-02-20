@@ -8,6 +8,47 @@ export interface TemplateSpec {
   description: string;
 }
 
+export type InstagramSizeKey = 'square' | 'portrait' | 'landscape' | 'story';
+
+export interface InstagramSizeSpec {
+  key: InstagramSizeKey;
+  label: string;
+  width: number;
+  height: number;
+  description: string;
+}
+
+export const INSTAGRAM_SIZES: Record<InstagramSizeKey, InstagramSizeSpec> = {
+  square: {
+    key: 'square',
+    label: 'Square (1080×1080)',
+    width: 1080,
+    height: 1080,
+    description: 'Standard feed post',
+  },
+  portrait: {
+    key: 'portrait',
+    label: 'Portrait (1080×1350)',
+    width: 1080,
+    height: 1350,
+    description: 'Portrait feed post',
+  },
+  landscape: {
+    key: 'landscape',
+    label: 'Landscape (1080×566)',
+    width: 1080,
+    height: 566,
+    description: 'Landscape feed post',
+  },
+  story: {
+    key: 'story',
+    label: 'Story / Reel (1080×1920)',
+    width: 1080,
+    height: 1920,
+    description: 'Story or Reel cover',
+  },
+};
+
 export const TEMPLATE_SPECS: Record<TemplateKind, TemplateSpec> = {
   'book-cover': {
     id: 'book-cover',
@@ -33,9 +74,9 @@ export const TEMPLATE_SPECS: Record<TemplateKind, TemplateSpec> = {
   instagram: {
     id: 'instagram',
     name: 'Instagram Post',
-    width: 1080,
-    height: 1080,
-    description: 'Square 1080×1080',
+    width: INSTAGRAM_SIZES.square.width,
+    height: INSTAGRAM_SIZES.square.height,
+    description: INSTAGRAM_SIZES.square.label,
   },
 };
 
@@ -67,11 +108,23 @@ export interface EventInviteData {
   textColor: string;
 }
 
+export interface InstagramSticker {
+  id: string;
+  text: string;
+  x: number; // 0–1 relative
+  y: number; // 0–1 relative
+  scale: number;
+  rotation: number;
+}
+
 export interface InstagramData {
   headline: string;
   subtext: string;
   backgroundColor: string;
   textColor: string;
+  size: InstagramSizeKey;
+  backgroundImage?: string; // data URL
+  stickers: InstagramSticker[];
 }
 
 export type TemplateData =
@@ -112,4 +165,6 @@ export const DEFAULT_INSTAGRAM: InstagramData = {
   subtext: 'Supporting text or CTA',
   backgroundColor: '#0f0f23',
   textColor: '#ffffff',
+  size: 'square',
+  stickers: [],
 };

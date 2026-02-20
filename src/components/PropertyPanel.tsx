@@ -1,4 +1,13 @@
-import type { TemplateData, BookCoverData, BookPageData, EventInviteData, InstagramData } from '../types/templates';
+import { useRef, useState } from 'react';
+import type {
+  TemplateData,
+  BookCoverData,
+  BookPageData,
+  EventInviteData,
+  InstagramData,
+  InstagramSizeKey,
+} from '../types/templates';
+import { INSTAGRAM_SIZES } from '../types/templates';
 
 interface Props {
   data: TemplateData;
@@ -200,6 +209,76 @@ export function PropertyPanel({ data, onChange }: Props) {
     const d = data.data as InstagramData;
     const update = (partial: Partial<InstagramData>) =>
       onChange({ kind: 'instagram', data: { ...d, ...partial } });
+
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const [usingCamera, setUsingCamera] = useState(false);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = typeof reader.result === 'string' ? reader.result : '';
+        if (result) {
+          update({ backgroundImage: result });
+        }
+      };
+      reader.readAsDataURL(file);
+    };
+
+    const startCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+        });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+          setUsingCamera(true);
+        }
+      } catch {
+        // ignore for now
+      }
+    };
+
+    const capturePhoto = () => {
+      if (!videoRef.current) return;
+      const video = videoRef.current;
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 1080;
+      canvas.height = video.videoHeight || 1080;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/png');
+      update({ backgroundImage: dataUrl });
+
+      const stream = video.srcObject as MediaStream | null;
+      stream?.getTracks().forEach((t) => t.stop());
+      video.srcObject = null;
+      setUsingCamera(false);
+    };
+
+    const addSticker = (text: string) => {
+      const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const stickers = [
+        ...d.stickers,
+        {
+          id,
+          text,
+          x: 0.5,
+          y: 0.5,
+          scale: 1,
+          rotation: 0,
+        },
+      ];
+      update({ stickers });
+    };
+
+    const handleSizeChange = (value: InstagramSizeKey) => {
+      update({ size: value });
+    };
+
     return (
       <div className="space-y-4">
         <div>
@@ -209,6 +288,20 @@ export function PropertyPanel({ data, onChange }: Props) {
         <div>
           <Label htmlFor="subtext">Subtext / CTA</Label>
           <Input id="subtext" value={d.subtext} onChange={(v) => update({ subtext: v })} placeholder="Supporting text" />
+        </div>
+        <div>
+          <Label>Canvas size</Label>
+          <select
+            value={d.size}
+            onChange={(e) => handleSizeChange(e.target.value as InstagramSizeKey)}
+            className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-600 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          >
+            {Object.values(INSTAGRAM_SIZES).map((size) => (
+              <option key={size.key} value={size.key}>
+                {size.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <Label>Background</Label>
@@ -233,6 +326,53 @@ export function PropertyPanel({ data, onChange }: Props) {
             />
             <Input value={d.textColor} onChange={(v) => update({ textColor: v })} />
           </div>
+        </div>
+        <div className="pt-2 border-t border-zinc-700/70 space-y-3">
+          <Label>Background media</Label>
+          <div className="space-y-2">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="block w-full text-xs text-zinc-300 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-indigo-600 file:text-white hover:file:bg-indigo-500"
+            />
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={usingCamera ? capturePhoto : startCamera}
+                className="px-3 py-1.5 rounded-lg bg-zinc-800 border border-zinc-600 text-xs text-zinc-100 hover:bg-zinc-700 transition-colors"
+              >
+                {usingCamera ? 'Capture photo' : 'Take photo'}
+              </button>
+            </div>
+            {usingCamera && (
+              <video
+                ref={videoRef}
+                className="mt-2 w-full rounded-lg border border-zinc-700"
+                autoPlay
+                playsInline
+                muted
+              />
+            )}
+          </div>
+        </div>
+        <div className="pt-2 border-t border-zinc-700/70 space-y-2">
+          <Label>Stickers</Label>
+          <div className="flex flex-wrap gap-2">
+            {['New', '✨ Magic', '🔥 Hot', 'Sale', 'Drop'].map((label) => (
+              <button
+                key={label}
+                type="button"
+                onClick={() => addSticker(label)}
+                className="px-2.5 py-1 rounded-full bg-zinc-800 border border-zinc-600 text-[11px] text-zinc-100 hover:bg-zinc-700"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-zinc-500">
+            Drag stickers directly on the canvas to reposition.
+          </p>
         </div>
       </div>
     );
