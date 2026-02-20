@@ -1,4 +1,5 @@
 import type { BookPageData } from '../../types/templates';
+import { FONT_OPTIONS } from '../../types/templates';
 
 interface Props {
   data: BookPageData;
@@ -6,6 +7,7 @@ interface Props {
 }
 
 export function BookPageTemplate({ data, scale }: Props) {
+  const fontFamily = FONT_OPTIONS[data.fontFamily ?? 'georgia']?.fontFamily ?? FONT_OPTIONS.georgia.fontFamily;
   return (
     <div
       className="rounded-sm shadow-2xl overflow-hidden flex flex-col"
@@ -15,7 +17,7 @@ export function BookPageTemplate({ data, scale }: Props) {
         backgroundColor: data.backgroundColor,
         color: data.textColor,
         padding: 40 * scale,
-        fontFamily: 'Georgia, "Times New Roman", serif',
+        fontFamily,
       }}
     >
       {data.title && (

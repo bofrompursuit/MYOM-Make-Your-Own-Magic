@@ -2,8 +2,10 @@ import { useCallback, useRef, useState } from 'react';
 import html2canvas from 'html2canvas';
 import {
   TEMPLATE_SPECS,
+  INSTAGRAM_SIZES,
   type TemplateKind,
   type TemplateData,
+  type InstagramData,
   DEFAULT_BOOK_COVER,
   DEFAULT_BOOK_PAGE,
   DEFAULT_EVENT_INVITE,
@@ -24,9 +26,15 @@ function getDefaultData(kind: TemplateKind): TemplateData {
   return found ?? { kind: 'instagram', data: DEFAULT_INSTAGRAM };
 }
 
+const ZOOM_MIN = 0.25;
+const ZOOM_MAX = 2;
+const ZOOM_STEP = 0.25;
+
 export default function App() {
   const [templateKind, setTemplateKind] = useState<TemplateKind>('book-cover');
   const [templateData, setTemplateData] = useState<TemplateData>(() => getDefaultData('book-cover'));
+  const [zoom, setZoom] = useState(1);
+  const [exporting, setExporting] = useState(false);
   const templateRef = useRef<HTMLDivElement>(null);
 
   const switchTemplate = useCallback((kind: TemplateKind) => {
@@ -34,27 +42,47 @@ export default function App() {
     setTemplateData(getDefaultData(kind));
   }, []);
 
+  const getExportDimensions = useCallback(() => {
+    if (templateData.kind === 'instagram') {
+      const size = INSTAGRAM_SIZES[(templateData.data as InstagramData).size];
+      return { width: size.width, height: size.height };
+    }
+    const spec = TEMPLATE_SPECS[templateData.kind];
+    return { width: spec.width, height: spec.height };
+  }, [templateData]);
+
   const handleExport = useCallback(async () => {
     const el = templateRef.current?.firstElementChild as HTMLElement;
     if (!el) return;
-    const spec = TEMPLATE_SPECS[templateData.kind];
+    const { width: targetW, height: targetH } = getExportDimensions();
     const renderedW = el.offsetWidth;
-    const scale = Math.max(1, spec.width / renderedW);
+    const renderedH = el.offsetHeight;
+    const scaleX = targetW / renderedW;
+    const scaleY = targetH / renderedH;
+    const scale = Math.max(scaleX, scaleY, 1);
+    setExporting(true);
     try {
       const canvas = await html2canvas(el, {
         scale,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: null,
         logging: false,
       });
+      const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.download = `myom-${templateData.kind}-${Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = dataUrl;
+      link.rel = 'download';
+      document.body.appendChild(link);
       link.click();
+      link.remove();
     } catch (e) {
       console.error('Export failed', e);
+    } finally {
+      setExporting(false);
     }
-  }, [templateData.kind]);
+  }, [templateData.kind, getExportDimensions]);
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--canvas-bg)]">
@@ -95,7 +123,7 @@ export default function App() {
 
       {/* Center - canvas */}
       <main className="flex-1 flex flex-col min-w-0 overflow-auto">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--panel-bg)]/80">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] bg-[var(--panel-bg)]/80 flex-wrap gap-3">
           <div>
             <h2 className="text-sm font-medium text-white">
               {TEMPLATE_SPECS[templateKind].name}
@@ -104,18 +132,45 @@ export default function App() {
               {TEMPLATE_SPECS[templateKind].description}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={handleExport}
-            className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
-          >
-            Export PNG
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-400 whitespace-nowrap">Zoom</span>
+              <div className="flex items-center bg-zinc-800 rounded-lg border border-zinc-600 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.max(ZOOM_MIN, z - ZOOM_STEP))}
+                  className="px-2.5 py-1.5 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors text-sm font-medium"
+                  aria-label="Zoom out"
+                >
+                  −
+                </button>
+                <span className="px-2.5 text-sm text-white min-w-[3ch] text-center tabular-nums">
+                  {Math.round(zoom * 100)}%
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setZoom((z) => Math.min(ZOOM_MAX, z + ZOOM_STEP))}
+                  className="px-2.5 py-1.5 text-zinc-300 hover:text-white hover:bg-zinc-700 transition-colors text-sm font-medium"
+                  aria-label="Zoom in"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleExport}
+              disabled={exporting}
+              className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-medium transition-colors"
+            >
+              {exporting ? 'Exporting…' : 'Download PNG'}
+            </button>
+          </div>
         </div>
         <div className="flex-1 flex items-center justify-center p-6 overflow-auto">
           <TemplateCanvas
             data={templateData}
-            scale={1}
+            scale={zoom}
             templateRef={templateRef}
             onInstagramStickersChange={(stickers) => {
               if (templateData.kind !== 'instagram') return;

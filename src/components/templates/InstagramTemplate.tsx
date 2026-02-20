@@ -1,5 +1,5 @@
 import type { InstagramData, InstagramSticker } from '../../types/templates';
-import { INSTAGRAM_SIZES } from '../../types/templates';
+import { INSTAGRAM_SIZES, FONT_OPTIONS } from '../../types/templates';
 
 interface Props {
   data: InstagramData;
@@ -10,6 +10,7 @@ interface Props {
 
 export function InstagramTemplate({ data, scale, onStickersChange, onInstagramChange }: Props) {
   const size = INSTAGRAM_SIZES[data.size];
+  const fontFamily = FONT_OPTIONS[data.fontFamily ?? 'dm-sans']?.fontFamily ?? FONT_OPTIONS['dm-sans'].fontFamily;
   const headlineX = data.headlineX ?? 0.5;
   const headlineY = data.headlineY ?? 0.4;
   const subtextX = data.subtextX ?? 0.5;
@@ -57,7 +58,7 @@ export function InstagramTemplate({ data, scale, onStickersChange, onInstagramCh
         height: size.height * scale,
         backgroundColor: data.backgroundColor,
         color: data.textColor,
-        fontFamily: '"DM Sans", "Helvetica Neue", sans-serif',
+        fontFamily,
       }}
     >
       {data.backgroundImage && (

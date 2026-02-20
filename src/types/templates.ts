@@ -1,5 +1,21 @@
 export type TemplateKind = 'book-cover' | 'book-page' | 'event-invite' | 'instagram';
 
+export type FontKey = 'dm-sans' | 'inter' | 'playfair' | 'georgia' | 'system';
+
+export interface FontOption {
+  key: FontKey;
+  label: string;
+  fontFamily: string;
+}
+
+export const FONT_OPTIONS: Record<FontKey, FontOption> = {
+  'dm-sans': { key: 'dm-sans', label: 'DM Sans', fontFamily: '"DM Sans", "Helvetica Neue", sans-serif' },
+  inter: { key: 'inter', label: 'Inter', fontFamily: '"Inter", system-ui, sans-serif' },
+  playfair: { key: 'playfair', label: 'Playfair Display', fontFamily: '"Playfair Display", Georgia, serif' },
+  georgia: { key: 'georgia', label: 'Georgia', fontFamily: 'Georgia, "Times New Roman", serif' },
+  system: { key: 'system', label: 'System', fontFamily: 'system-ui, -apple-system, sans-serif' },
+};
+
 export interface TemplateSpec {
   id: TemplateKind;
   name: string;
@@ -87,6 +103,7 @@ export interface BookCoverData {
   author: string;
   backgroundColor: string;
   textColor: string;
+  fontFamily: FontKey;
 }
 
 export interface BookPageData {
@@ -95,6 +112,7 @@ export interface BookPageData {
   pageNumber: string;
   backgroundColor: string;
   textColor: string;
+  fontFamily: FontKey;
 }
 
 export interface EventInviteData {
@@ -106,6 +124,7 @@ export interface EventInviteData {
   rsvp: string;
   backgroundColor: string;
   textColor: string;
+  fontFamily: FontKey;
 }
 
 export interface InstagramSticker {
@@ -126,6 +145,7 @@ export interface InstagramData {
   subtextY: number;
   backgroundColor: string;
   textColor: string;
+  fontFamily: FontKey;
   size: InstagramSizeKey;
   backgroundImage?: string;
   backgroundImageScale: number; // 0.5–2
@@ -146,6 +166,7 @@ export const DEFAULT_BOOK_COVER: BookCoverData = {
   author: 'Author Name',
   backgroundColor: '#1a1a2e',
   textColor: '#eaeaea',
+  fontFamily: 'georgia',
 };
 
 export const DEFAULT_BOOK_PAGE: BookPageData = {
@@ -154,6 +175,7 @@ export const DEFAULT_BOOK_PAGE: BookPageData = {
   pageNumber: '1',
   backgroundColor: '#faf8f5',
   textColor: '#1a1a1a',
+  fontFamily: 'georgia',
 };
 
 export const DEFAULT_EVENT_INVITE: EventInviteData = {
@@ -165,6 +187,7 @@ export const DEFAULT_EVENT_INVITE: EventInviteData = {
   rsvp: 'RSVP by March 1 • name@email.com',
   backgroundColor: '#0f172a',
   textColor: '#f8fafc',
+  fontFamily: 'playfair',
 };
 
 export const DEFAULT_INSTAGRAM: InstagramData = {
@@ -176,6 +199,7 @@ export const DEFAULT_INSTAGRAM: InstagramData = {
   subtextY: 0.6,
   backgroundColor: '#0f0f23',
   textColor: '#ffffff',
+  fontFamily: 'dm-sans',
   size: 'square',
   backgroundImageScale: 1,
   backgroundImageX: 0.5,

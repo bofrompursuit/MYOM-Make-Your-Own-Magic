@@ -1,4 +1,5 @@
 import type { EventInviteData } from '../../types/templates';
+import { FONT_OPTIONS } from '../../types/templates';
 
 interface Props {
   data: EventInviteData;
@@ -6,6 +7,7 @@ interface Props {
 }
 
 export function EventInviteTemplate({ data, scale }: Props) {
+  const fontFamily = FONT_OPTIONS[data.fontFamily ?? 'playfair']?.fontFamily ?? FONT_OPTIONS.playfair.fontFamily;
   return (
     <div
       className="rounded-sm shadow-2xl overflow-hidden flex flex-col justify-center items-center text-center"
@@ -15,7 +17,7 @@ export function EventInviteTemplate({ data, scale }: Props) {
         backgroundColor: data.backgroundColor,
         color: data.textColor,
         padding: 36 * scale,
-        fontFamily: '"Playfair Display", Georgia, serif',
+        fontFamily,
       }}
     >
       <p

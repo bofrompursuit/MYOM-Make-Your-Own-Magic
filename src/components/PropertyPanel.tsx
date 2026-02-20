@@ -6,8 +6,9 @@ import type {
   EventInviteData,
   InstagramData,
   InstagramSizeKey,
+  FontKey,
 } from '../types/templates';
-import { INSTAGRAM_SIZES } from '../types/templates';
+import { INSTAGRAM_SIZES, FONT_OPTIONS } from '../types/templates';
 
 interface Props {
   data: TemplateData;
@@ -44,6 +45,31 @@ function Input({
       placeholder={placeholder}
       className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-600 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
     />
+  );
+}
+
+function FontSelect({
+  value,
+  onChange,
+  id,
+}: {
+  value: FontKey;
+  onChange: (v: FontKey) => void;
+  id?: string;
+}) {
+  return (
+    <select
+      id={id}
+      value={value}
+      onChange={(e) => onChange(e.target.value as FontKey)}
+      className="w-full px-3 py-2 rounded-lg bg-zinc-800 border border-zinc-600 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+    >
+      {(Object.keys(FONT_OPTIONS) as FontKey[]).map((key) => (
+        <option key={key} value={key}>
+          {FONT_OPTIONS[key].label}
+        </option>
+      ))}
+    </select>
   );
 }
 
@@ -89,6 +115,10 @@ export function PropertyPanel({ data, onChange }: Props) {
             />
             <Input value={d.textColor} onChange={(v) => update({ textColor: v })} />
           </div>
+        </div>
+        <div>
+          <Label htmlFor="book-cover-font">Font</Label>
+          <FontSelect id="book-cover-font" value={d.fontFamily ?? 'georgia'} onChange={(v) => update({ fontFamily: v })} />
         </div>
       </div>
     );
@@ -142,6 +172,10 @@ export function PropertyPanel({ data, onChange }: Props) {
             />
             <Input value={d.textColor} onChange={(v) => update({ textColor: v })} />
           </div>
+        </div>
+        <div>
+          <Label htmlFor="book-page-font">Font</Label>
+          <FontSelect id="book-page-font" value={d.fontFamily ?? 'georgia'} onChange={(v) => update({ fontFamily: v })} />
         </div>
       </div>
     );
@@ -200,6 +234,10 @@ export function PropertyPanel({ data, onChange }: Props) {
             />
             <Input value={d.textColor} onChange={(v) => update({ textColor: v })} />
           </div>
+        </div>
+        <div>
+          <Label htmlFor="event-invite-font">Font</Label>
+          <FontSelect id="event-invite-font" value={d.fontFamily ?? 'playfair'} onChange={(v) => update({ fontFamily: v })} />
         </div>
       </div>
     );
@@ -339,6 +377,10 @@ export function PropertyPanel({ data, onChange }: Props) {
             />
             <Input value={d.textColor} onChange={(v) => update({ textColor: v })} />
           </div>
+        </div>
+        <div>
+          <Label htmlFor="instagram-font">Font</Label>
+          <FontSelect id="instagram-font" value={d.fontFamily ?? 'dm-sans'} onChange={(v) => update({ fontFamily: v })} />
         </div>
         <div className="pt-2 border-t border-zinc-700/70 space-y-3">
           <Label>Background media</Label>

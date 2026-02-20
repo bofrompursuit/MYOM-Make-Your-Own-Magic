@@ -1,4 +1,5 @@
 import type { BookCoverData } from '../../types/templates';
+import { FONT_OPTIONS } from '../../types/templates';
 
 interface Props {
   data: BookCoverData;
@@ -6,6 +7,7 @@ interface Props {
 }
 
 export function BookCoverTemplate({ data, scale }: Props) {
+  const fontFamily = FONT_OPTIONS[data.fontFamily ?? 'georgia']?.fontFamily ?? FONT_OPTIONS.georgia.fontFamily;
   return (
     <div
       className="rounded-sm shadow-2xl flex flex-col justify-between overflow-hidden"
@@ -21,7 +23,7 @@ export function BookCoverTemplate({ data, scale }: Props) {
         className="flex flex-col gap-2"
         style={{
           color: data.textColor,
-          fontFamily: 'Georgia, "Times New Roman", serif',
+          fontFamily,
         }}
       >
         <h1
